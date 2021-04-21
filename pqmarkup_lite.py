@@ -195,20 +195,6 @@ class Converter:
                        or (i == writepos and len(ending_tags) != 0 and ending_tags[-1] in ('</blockquote>', '</div>') and instr[i-2:i] in ('>‘', '<‘', '!‘'))): # ’’’ # or beginning of blockquote or note
                 if ch == '.' and next_char() == ' ':
                     write_to_i('•')
-                elif ch == '-': # horizontal rule
-                    if i_next_str('--'):
-                        j = i + 3
-                        while True:
-                            if j == len(instr) or instr[j] == "\n":
-                                write_to_i("<hr />\n")
-                                if j == len(instr):
-                                    j -= 1
-                                i = j
-                                writepos = j + 1
-                                break
-                            if instr[j] != '-':
-                                break
-                            j += 1
                 elif ch in ('>', '<') and (next_char() in ' ‘['): # this is blockquote # ]’
                     write_to_pos(i, i + 2)
                     outfile.write('<blockquote'+(ch=='<')*' class="re"'+'>')

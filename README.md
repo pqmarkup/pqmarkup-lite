@@ -4,6 +4,7 @@ pqmarkup-lite in contrast to pqmarkup does not support the following features:
 - Tables.
 - Ordered lists (unordered lists are partially supported: dot at the beginning of the line is replaced with bullet symbol [•]).
 - `#‘code’` and `#(language)‘code’`.
+- Horizontal rules.
 
 Also blockquotes support is reduced:
 ```
