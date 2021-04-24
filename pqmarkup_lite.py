@@ -63,8 +63,7 @@ class Converter:
             return instr[i - offset] if i - offset >= 0 else Char("\0")
 
         def html_escape(str):
-            str = str.replace('&', '&amp;').replace('<', '&lt;')
-            return str
+            return str.replace('&', '&amp;').replace('<', '&lt;')
         def html_escapeq(str):
             return str.replace('&', '&amp;').replace('"', '&quot;')
 
@@ -308,7 +307,7 @@ class Converter:
                     outfile.write('<div align="' + {'<<':'left', '>>':'right', '><':'center', '<>':'justify'}[instr[prevci-1]+prevc] + '">'
                                  + self.to_html(instr[startqpos+1:endqpos], outer_pos = startqpos+1) + "</div>\n")
                     new_line_tag = ''
-                elif i_next_str(":‘") and instr[find_ending_pair_quote(i+2)+1:][:1] == '<': # this is reversed quote ‘Quoted text.’:‘Author's name’< # ’
+                elif i_next_str(":‘") and instr[find_ending_pair_quote(i+2)+1:find_ending_pair_quote(i+2)+2] == '<': # this is reversed quote ‘Quoted text.’:‘Author's name’< # ’
                     endrq = find_ending_pair_quote(i+2)
                     i = endrq + 1
                     write_to_pos(prevci + 1, i + 1)
@@ -378,7 +377,7 @@ class Converter:
             elif ch == '[': # ]
                 if i_next_str('http') or i_next_str('./') or (i_next_str('‘') and prev_char() not in "\r\n\t \0"): # ’
                     s = i - 1
-                    while s >= writepos and instr[s] not in "\r\n\t [{(‘“": # ”’)}]
+                    while s >= writepos and instr[s] not in "\r\n\t [{(": # )}]
                         s -= 1
                     if i_next_str('‘'): # ’
                         write_abbr(s + 1, i, 0)
@@ -420,7 +419,8 @@ class Converter:
             i += 1
 
         write_to_pos(len(instr), 0)
-        assert(len(ending_tags) == 0) # there is an unclosed opening quote somewhere
+        if len(ending_tags) != 0: # there is an unclosed opening/left quote somewhere
+            exit_with_error('Unclosed left single quotation mark somewhere', len(instr))
 
         assert(self.to_html_called_inside_to_html_outer_pos_list.pop() == outer_pos)
 

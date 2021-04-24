@@ -1,4 +1,4 @@
-pqmarkup-lite in contrast to pqmarkup does not support the following features:
+**pqmarkup-lite** in contrast to **pqmarkup** does not support the following features:
 - Text color.
 - Pictures/images.
 - Tables.
