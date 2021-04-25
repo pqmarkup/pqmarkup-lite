@@ -56,12 +56,7 @@ TEST("[[[comment[[[[sensitive information]]]]]]]", "")
 TEST("[[[com]ment]]", "")
 TEST("[[[[comment]]]]", "")
 TEST("[[[[[com]m]e]n]t]", "")
-TEST("---", "<hr />\n")
-TEST("---\n", "<hr />\n")
-TEST("a\n---\n", "a<br />\n<hr />\n")
-TEST("a\n---\n\n", "a<br />\n<hr />\n<br />\n") # check for wrong code: `writepos = i = j + 1` (should be `i = j`)
 TEST("a\n---=\n", "a<br />\n---=<br />\n")
-TEST("a\n----\n", "a<br />\n<hr />\n")
 TEST("a0‘*‘<non-bold>’’", "a*‘&lt;non-bold>’")
 TEST("""‘title’{
 te
