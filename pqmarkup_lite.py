@@ -434,6 +434,16 @@ def to_html(instr, outfilef : IO[str] = None, ohd = False):
 
 
 if __name__ == '__main__':
+    if '-t' in sys.argv:
+        tests_cnt = 0
+        for test in open('tests.txt', 'r', encoding = 'utf-8').read().split("|\n\n|"):
+            (left, right) = test.split(' (()) ')
+            if to_html(left) != right:
+                sys.exit('Error in test |' + test + '|')
+            tests_cnt += 1
+        print('All of', tests_cnt, 'tests are passed!')
+        sys.exit(0)
+
     if len(sys.argv) < 3:
         print('Usage: pqmarkup_lite input-file output-file')
         sys.exit(0)

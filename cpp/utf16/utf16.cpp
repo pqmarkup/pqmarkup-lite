@@ -89,7 +89,7 @@ public:
 template <int oldN, int newN> std::u16string &&replace_all(std::u16string &&str, const char16_t (&old)[oldN], const char16_t (&n)[newN])
 {
     size_t start_pos = 0;
-    while((start_pos = str.find(old, (int)start_pos)) != str.npos) {
+    while((start_pos = str.find(old, start_pos)) != str.npos) {
         str.replace(start_pos, oldN-1, n, newN-1);
         start_pos += newN-1;
     }
@@ -503,13 +503,15 @@ public:
                         if (!str_in_b.empty())
                             if (str_in_b[0] == u'-')
                                 h = -(str_in_b[1] - u'0');
+                            else if (str_in_b[0] == u'+')
+                                h = str_in_b[1] - u'0';
                             else
                                 h = str_in_b[0] - u'0';
                         auto tag = u"h"s + char16_t(u'0' + std::min(std::max(3 - h, 1), 6));
                         write(u"<" + tag + u">");
                         ending_tags.push_back(u"</" + tag + u">");
                     }
-                    else if (in(instr.substr(prevci - 1, 2), u"/\\", u"\\/")) {
+                    else if (prevci >= 1 && in(instr.substr(prevci - 1, 2), u"/\\", u"\\/")) {
                         write_to_pos(prevci - 1, i + 1);
                         auto tag = instr.substr(prevci - 1, 2) == u"/\\" ? u"sup"s : u"sub"s;
                         write(u"<" + tag + u">");
@@ -657,8 +659,52 @@ template <int N> void write_to_file(FILE *file, const char(&s)[N])
     fwrite(s, N-1, 1, file);
 }
 
+// [https://stackoverflow.com/a/46931770/2692494 <- google:‘c++ split’]
+std::vector<std::u16string> split(const std::u16string &s, const std::u16string &delimiter) {
+    size_t pos_start = 0, pos_end, delim_len = delimiter.length();
+    std::u16string token;
+    std::vector<std::u16string> res;
+
+    while ((pos_end = s.find(delimiter, pos_start)) != std::u16string::npos) {
+        token = s.substr(pos_start, pos_end - pos_start);
+        pos_start = pos_end + delim_len;
+        res.push_back(token);
+    }
+
+    res.push_back(s.substr(pos_start));
+    return res;
+}
+
 int main(int argc, char *argv[])
 {
+    if (argc == 2 && strcmp(argv[1], "-t") == 0) {
+        FILE *tests_file = NULL;
+        fopen_s(&tests_file, "../../tests.txt", "rb");
+        fseek(tests_file, 0, SEEK_END);
+        size_t tests_file_size = ftell(tests_file);
+        fseek(tests_file, 0, SEEK_SET);
+        std::string tests_file_str;
+        tests_file_str.resize(tests_file_size);
+        fread(const_cast<char*>(tests_file_str.data()), tests_file_size, 1, tests_file);
+        fclose(tests_file);
+
+        std::u16string tests_str = utf8_to_utf16(tests_file_str), delim = u" (()) ";
+
+        int tests_cnt = 0;
+        for (auto &&test : split(tests_str, u"|\n\n|")) {
+            tests_cnt++;
+            size_t delim_pos = test.find(delim);
+            std::u16string left = test.substr(0, delim_pos),
+                          right = test.substr(delim_pos + delim.length());
+            if (to_html(left) != right) {
+                std::cerr << "Error in test #" << tests_cnt << "\n";
+                return -1;
+            }
+        }
+        std::cout << "All of " << tests_cnt << " tests are passed!\n";
+        return 0;
+    }
+
     if (argc < 3) {
         std::cout << "Usage: pqmarkup_lite input-file output-file\n";
         return 0;
