@@ -425,34 +425,6 @@ public:
                     write_http_link(startqpos, endqpos);
                 else if (i_next_str(u"[‘")) // ’]
                     write_abbr(startqpos, endqpos);
-                else if (next_char() == u'{' && ohd) { // }
-                    int nesting_level = 0;
-                    i += 2;
-                    while (true) {
-                        if (i == instr.length())
-                            exit_with_error("Unended spoiler", endqpos + 1);
-                        switch (instr[i])
-                        {
-                        case u'{':
-                            nesting_level++;
-                            break;
-                        case u'}':
-                            if (nesting_level == 0)
-                                goto break_1;
-                            nesting_level--;
-                            break;
-                        }
-                        i++;
-                    }
-                    break_1:;
-                    write_to_pos(prevci + 1, i + 1);
-                    int outer_p = endqpos + (instr[endqpos + 2] == u'\n' ? 3 : 2);
-                    write(u"<span class=\"spoiler_title\" onclick=\"return spoiler2(this, event)\">" + remove_comments(substr(instr, startqpos + 1, endqpos), startqpos + 1) + u"<br /></span>" + u"<div class=\"spoiler_text\" style=\"display: none\">\n" + (to_html(substr(instr, outer_p, i), nullptr, outer_p)) + u"</div>\n");
-                    if (next_char() == u'\n') {
-                        i++;
-                        writepos = i + 1;
-                    }
-                }
                 else if (in(prevc, u"0OО")) {
                     write_to_pos(prevci, endqpos + 1);
                     write(replace_all(html_escape(substr(instr, startqpos + 1, endqpos)), u"\n", u"<br />\n"));
@@ -727,10 +699,6 @@ function spoiler(element, event)
     element.firstChild.style.fontWeight =
     element. lastChild.style.fontWeight = (e.style.display == "" ? "normal" : "bold");
     event.stopPropagation();
-}
-function spoiler2(element, event)
-{
-    element.nextSibling.style.display = (element.nextSibling.style.display == "none" ? "" : "none");
 }
 </script>
 <style type="text/css">

@@ -5,6 +5,7 @@
 - Ordered lists (unordered lists are partially supported: dot at the beginning of the line is replaced with bullet symbol [•]).
 - `#‘code’` and `#(language)‘code’`.
 - Raw HTML.
+- Classical spoilers.
 - Horizontal rules.
 
 Also blockquotes support is reduced:

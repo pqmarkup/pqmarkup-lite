@@ -262,28 +262,6 @@ class Converter:
                     write_http_link(startqpos, endqpos)
                 elif i_next_str('[‘'): # ’]
                     write_abbr(startqpos, endqpos)
-                elif next_char() == '{' and self.ohd:
-                    # Looking for the end of the spoiler (`}`)
-                    nesting_level = 0
-                    i += 2
-                    while True:
-                        if i == len(instr):
-                            exit_with_error('Unended spoiler', endqpos+1)
-                        ch = instr[i]
-                        if ch == "{":
-                            nesting_level += 1
-                        elif ch == "}":
-                            if nesting_level == 0:
-                                break
-                            nesting_level -= 1
-                        i += 1
-                    write_to_pos(prevci + 1, i + 1)
-                    outer_p = endqpos+(3 if instr[endqpos+2] == "\n" else 2) # checking for == "\n" is needed to ignore newline after `{`
-                    outfile.write('<span class="spoiler_title" onclick="return spoiler2(this, event)">' + remove_comments(instr[startqpos+1:endqpos], startqpos+1) + '<br /></span>' # use `span`, since with a `div` the underline will be full screen
-                        + '<div class="spoiler_text" style="display: none">\n' + self.to_html(instr[outer_p:i], outer_pos = outer_p) + "</div>\n")
-                    if next_char() == "\n": # to ignore newline after `}`
-                        i += 1
-                        writepos = i + 1
                 elif prevc in '0OО':
                     write_to_pos(prevci, endqpos+1)
                     outfile.write(html_escape(instr[startqpos+1:endqpos]).replace("\n", "<br />\n"))
@@ -467,10 +445,6 @@ function spoiler(element, event)
     element.firstChild.style.fontWeight =
     element. lastChild.style.fontWeight = (e.style.display == "" ? "normal" : "bold");
     event.stopPropagation();
-}
-function spoiler2(element, event)
-{
-    element.nextSibling.style.display = (element.nextSibling.style.display == "none" ? "" : "none");
 }
 </script>
 <style type="text/css">
