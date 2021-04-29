@@ -253,10 +253,10 @@ class Converter:
                 endqpos = i
                 str_in_p = '' # (
                 if prevc == ')':
-                    openb = instr.rfind('(', 0, prevci - 1) # )
-                    if openb != -1 and openb > 0:
-                        str_in_p = instr[openb+1:startqpos-1]
-                        prevci = openb - 1
+                    openp = instr.rfind('(', 0, prevci - 1) # )
+                    if openp != -1 and openp > 0:
+                        str_in_p = instr[openp+1:startqpos-1]
+                        prevci = openp - 1
                         prevc = instr[prevci]
                 if i_next_str('[http') or i_next_str('[./'): # ]]
                     write_http_link(startqpos, endqpos)

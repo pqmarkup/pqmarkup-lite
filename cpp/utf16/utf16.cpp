@@ -414,10 +414,10 @@ public:
                 int endqpos = i;
                 std::u16string str_in_p; // (
                 if (prevc == u')') {
-                    size_t openb = instr.rfind(u'(', prevci - 1); // )
-                    if (openb != instr.npos && openb > 0) {
-                        str_in_p = substr(instr, (int)openb + 1, startqpos - 1);
-                        prevci = (int)openb - 1;
+                    size_t openp = instr.rfind(u'(', prevci - 1); // )
+                    if (openp != instr.npos && openp > 0) {
+                        str_in_p = substr(instr, (int)openp + 1, startqpos - 1);
+                        prevci = (int)openp - 1;
                         prevc = instr[prevci];
                     }
                 }
