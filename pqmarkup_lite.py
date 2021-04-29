@@ -251,11 +251,11 @@ class Converter:
                 startqpos = i
                 i = find_ending_pair_quote(i)
                 endqpos = i
-                str_in_b = '' # (
+                str_in_p = '' # (
                 if prevc == ')':
                     openb = instr.rfind('(', 0, prevci - 1) # )
                     if openb != -1 and openb > 0:
-                        str_in_b = instr[openb+1:startqpos-1]
+                        str_in_p = instr[openb+1:startqpos-1]
                         prevci = openb - 1
                         prevc = instr[prevci]
                 if i_next_str('[http') or i_next_str('[./'): # ]]
@@ -322,7 +322,7 @@ class Converter:
                         ending_tags.append('</' + tag + '>')
                     elif prevc in 'HН':
                         write_to_pos(prevci, i + 1)
-                        tag = 'h' + str(min(max(3 - (0 if str_in_b == '' else int(str_in_b)), 1), 6))
+                        tag = 'h' + str(min(max(3 - (0 if str_in_p == '' else int(str_in_p)), 1), 6))
                         outfile.write('<' + tag + '>')
                         ending_tags.append('</' + tag + '>')
                     elif (instr[prevci-1:prevci], prevc) in (('/', "\\"), ("\\", '/')):

@@ -412,11 +412,11 @@ public:
                 int startqpos = i;
                 i = find_ending_pair_quote(i);
                 int endqpos = i;
-                std::u16string str_in_b; // (
+                std::u16string str_in_p; // (
                 if (prevc == u')') {
                     size_t openb = instr.rfind(u'(', prevci - 1); // )
                     if (openb != instr.npos && openb > 0) {
-                        str_in_b = substr(instr, (int)openb + 1, startqpos - 1);
+                        str_in_p = substr(instr, (int)openb + 1, startqpos - 1);
                         prevci = (int)openb - 1;
                         prevc = instr[prevci];
                     }
@@ -500,13 +500,13 @@ public:
                     else if (in(prevc, u"HН")) {
                         write_to_pos(prevci, i + 1);
                         int h = 0;
-                        if (!str_in_b.empty())
-                            if (str_in_b[0] == u'-')
-                                h = -(str_in_b[1] - u'0');
-                            else if (str_in_b[0] == u'+')
-                                h = str_in_b[1] - u'0';
+                        if (!str_in_p.empty())
+                            if (str_in_p[0] == u'-')
+                                h = -(str_in_p[1] - u'0');
+                            else if (str_in_p[0] == u'+')
+                                h = str_in_p[1] - u'0';
                             else
-                                h = str_in_b[0] - u'0';
+                                h = str_in_p[0] - u'0';
                         auto tag = u"h"s + char16_t(u'0' + std::min(std::max(3 - h, 1), 6));
                         write(u"<" + tag + u">");
                         ending_tags.push_back(u"</" + tag + u">");
@@ -660,7 +660,8 @@ template <int N> void write_to_file(FILE *file, const char(&s)[N])
 }
 
 // [https://stackoverflow.com/a/46931770/2692494 <- google:‘c++ split’]
-std::vector<std::u16string> split(const std::u16string &s, const std::u16string &delimiter) {
+std::vector<std::u16string> split(const std::u16string &s, const std::u16string &delimiter)
+{
     size_t pos_start = 0, pos_end, delim_len = delimiter.length();
     std::u16string token;
     std::vector<std::u16string> res;
