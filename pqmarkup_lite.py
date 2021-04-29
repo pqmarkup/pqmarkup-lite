@@ -284,21 +284,6 @@ class Converter:
                     if next_char() == "\n": # to ignore newline after `}`
                         i += 1
                         writepos = i + 1
-                elif prevc == "'": # raw [html] output
-                    t = startqpos - 1
-                    while t >= 0:
-                        if instr[t] != "'":
-                            break
-                        t -= 1
-                    eat_left = startqpos - 1 - t
-                    t = endqpos + 1
-                    while t < len(instr):
-                        if instr[t] != "'":
-                            break
-                        t += 1
-                    eat_right = t - (endqpos + 1)
-                    write_to_pos(startqpos - eat_left, t)
-                    outfile.write(instr[startqpos + eat_left:endqpos - eat_right + 1])
                 elif prevc in '0OО':
                     write_to_pos(prevci, endqpos+1)
                     outfile.write(html_escape(instr[startqpos+1:endqpos]).replace("\n", "<br />\n"))

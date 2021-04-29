@@ -67,9 +67,6 @@ te<br />
 xt""", ohd = True) # пока что фиксирую такой некрасивый HTML-код, так как например этот HTML-код работает некорректно: '<span class="spoiler_title" onclick="return spoiler2(this, event)">title</span><div class="spoiler_text" style="display:none">te<br />\n</div><br />\nxt'
                    #                                                                                      и этот тоже: '<span class="spoiler_title" onclick="return spoiler2(this, event)">title</span><div class="spoiler_text" style="display:none">te</div><br />\nxt'
                    #                                                                                           и этот: '<span class="spoiler_title" onclick="return spoiler2(this, event)">title</span><div class="spoiler_text" style="display:none">te</div>xt'
-TEST("'‘<Don‘t! Don‘t! Don‘t!>’’’’''''", "<Don‘t! Don‘t! Don‘t!>")
-TEST("''‘‘’‘’’''", "’‘")
-TEST("''''‘‘‘‘Don’t! Don’t! Don’t!’'", "Don’t! Don’t! Don’t!")
 #TEST(open("tests/test1.pq", encoding="utf-8").read(), open("tests/test1.pq.to_habr_html", encoding="utf-8").read(), habr_html = True) # для проверки безопасности рефакторинга нужен был какой-либо обширный тестовый текст на пк-разметке [-TODO подобрать такой текст, который не стыдно закоммитить :)(:-]
 TEST("""<<‘выравнивание по левому краю’
 >>‘выравнивание по правому краю’

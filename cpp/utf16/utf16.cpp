@@ -453,24 +453,6 @@ public:
                         writepos = i + 1;
                     }
                 }
-                else if (prevc == u'\'') {
-                    int t = startqpos - 1;
-                    while (t >= 0) {
-                        if (instr[t] != u'\'')
-                            break;
-                        t--;
-                    }
-                    int eat_left = startqpos - 1 - t;
-                    t = endqpos + 1;
-                    while (t < instr.length()) {
-                        if (instr[t] != u'\'')
-                            break;
-                        t++;
-                    }
-                    int eat_right = t - (endqpos + 1);
-                    write_to_pos(startqpos - eat_left, t);
-                    write(substr(instr, startqpos + eat_left, endqpos - eat_right + 1));
-                }
                 else if (in(prevc, u"0OО")) {
                     write_to_pos(prevci, endqpos + 1);
                     write(replace_all(html_escape(substr(instr, startqpos + 1, endqpos)), u"\n", u"<br />\n"));
