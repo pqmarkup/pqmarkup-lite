@@ -1,7 +1,8 @@
 ﻿#include <string>
 using namespace std::string_literals;
-#include <codecvt>
-#include <locale>
+//#define WIN32_LEAN_AND_MEAN
+//#define NOMINMAX
+//#include <windows.h>
 #include <vector>
 #include <list>
 #include <numeric>
@@ -10,64 +11,6 @@ using namespace std::string_literals;
 //#define assert(...) do {} while(false)
 #include <assert.h>
 
-
-#if (!_DLL) && (_MSC_VER >= 1900 /* VS 2015*/) && (_MSC_VER <= 1914 /* VS 2017 */)
-std::locale::id std::codecvt<char16_t, char, _Mbstatet>::id; // [https://stackoverflow.com/a/46422184/2692494 <- google:‘codecvt msvc’]
-#endif
-
-/*
-std::string utf16_to_utf8(const std::u16string &utf16_string)
-{
-    // [https://stackoverflow.com/questions/32055357/visual-studio-c-2015-stdcodecvt-with-char16-t-or-char32-t <- google:‘codecvt msvc’]
-    std::wstring_convert<std::codecvt_utf8_utf16<int16_t>, int16_t> convert;
-    auto p = reinterpret_cast<const int16_t *>(utf16_string.data());
-    return convert.to_bytes(p, p + utf16_string.size());
-}
-
-std::u16string utf8_to_utf16(const char *s, size_t len)
-{
-    // [https://stackoverflow.com/questions/18921979/how-to-convert-utf-8-encoded-stdstring-to-utf-16-stdstring <- google:‘msvc utf8 to utf16’]
-    return std::wstring_convert<std::codecvt<char16_t,char,std::mbstate_t>,char16_t>().from_bytes(s, s + len);
-}
-*/
-#if 1
-std::string utf16_to_utf8(const std::u16string &u16)
-{
-    return std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t>{}.to_bytes(u16);
-}
-
-std::u16string utf8_to_utf16(const std::string &s)
-{
-    return std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t>{}.from_bytes(s);
-}
-#else
-#define WIN32_LEAN_AND_MEAN
-#define NOMINMAX
-#include <windows.h>
-
-std::string utf16_to_utf8(const std::u16string &u16)
-{
-    if (u16.empty())
-        return std::string();
-
-    int r = WideCharToMultiByte(CP_UTF8, WC_ERR_INVALID_CHARS, (LPCWCH)u16.data(), (int)u16.size(), NULL, 0, NULL, NULL);
-
-    std::string s;
-    s.resize(r);
-    WideCharToMultiByte(CP_UTF8, WC_ERR_INVALID_CHARS, (LPCWCH)u16.data(), (int)u16.size(), (LPSTR)s.data(), r, NULL, NULL);
-    return s;
-}
-
-std::u16string utf8_to_utf16(const std::string &s)
-{
-    std::u16string r;
-    if (s.size() != 0) {
-        r.resize(s.size());
-        r.resize(MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, s.data(), (int)s.size(), (LPWSTR)r.data(), (int)r.size()));
-    }
-    return r;
-}
-#endif
 
 class Exception
 {
@@ -82,12 +25,12 @@ public:
 class StringLiteral
 {
 public:
-    const char16_t *s;
+    const char *s;
     int len;
-    template <int N> StringLiteral(const char16_t (&s)[N]) : s(s), len(N-1) {}
+    template <int N> StringLiteral(const char (&s)[N]) : s(s), len(N-1) {}
 };
 
-template <int oldN, int newN> std::u16string &&replace_all(std::u16string &&str, const char16_t (&old)[oldN], const char16_t (&n)[newN])
+template <int oldN, int newN> std::string &&replace_all(std::string &&str, const char (&old)[oldN], const char (&n)[newN])
 {
     size_t start_pos = 0;
     while((start_pos = str.find(old, start_pos)) != str.npos) {
@@ -97,30 +40,30 @@ template <int oldN, int newN> std::u16string &&replace_all(std::u16string &&str,
     return std::move(str);
 }
 
-std::u16string &&html_escape(std::u16string &&str)
+std::string &&html_escape(std::string &&str)
 {
-    replace_all(std::move(str), u"&", u"&amp;");
-    replace_all(std::move(str), u"<", u"&lt;");
+    replace_all(std::move(str), "&", "&amp;");
+    replace_all(std::move(str), "<", "&lt;");
     return std::move(str);
 };
 
-std::u16string &&html_escapeq(std::u16string &&str)
+std::string &&html_escapeq(std::string &&str)
 {
-    replace_all(std::move(str), u"&", u"&amp;");
-    replace_all(std::move(str), u"\"", u"&quot;");
+    replace_all(std::move(str), "&", "&amp;");
+    replace_all(std::move(str), "\"", "&quot;");
     return std::move(str);
 };
 
-std::u16string substr(const std::u16string &s, int start, int end)
+std::string substr(const std::string &s, int start, int end)
 {
     return s.substr(start, end - start);
 }
 
-bool starts_with(const std::u16string &str, const char16_t *s, size_t sz)
+bool starts_with(const std::string &str, const char *s, size_t sz)
 {
-    return str.length() >= (int)sz && memcmp(str.data(), s, sz*sizeof(char16_t)) == 0;
+    return str.length() >= (int)sz && memcmp(str.data(), s, sz*sizeof(char)) == 0;
 }
-template <int N> bool starts_with(const std::u16string &str, const char16_t (&s)[N])
+template <int N> bool starts_with(const std::string &str, const char (&s)[N])
 {
     return starts_with(str, s, N-1);
 }
@@ -133,7 +76,7 @@ template <class ValTy, class Ty1, class Ty2, class Ty3> bool in(const ValTy &val
 {
     return val == t1 || val == t2 || val == t3;
 }
-template <int N> bool in(char16_t c, const char16_t(&s)[N])
+template <int N> bool in(char c, const char(&s)[N])
 {
     for (int i=0; i<N-1; i++)
         if (c == s[i])
@@ -141,22 +84,34 @@ template <int N> bool in(char16_t c, const char16_t(&s)[N])
     return false;
 }
 
+// [https://github.com/nim-lang/Nim/blob/version-1-4/lib/pure/unicode.nim#L54 <- https://nim-lang.org/docs/unicode.html]
+int rune_len_at(const std::string &s, int i)
+{
+    unsigned c = (unsigned char)s[i];
+    if (c <= 127) return 1;
+    if (c >> 5 == 0b110) return 2;
+    if (c >> 4 == 0b1110) return 3;
+    if (c >> 3 == 0b11110) return 4;
+    assert(false);
+    __assume(0); // suppress warning C4715
+}
+
 class Converter
 {
     std::vector<int> to_html_called_inside_to_html_outer_pos_arr;
     bool ohd;
-    const std::u16string *instr = nullptr;
+    const std::string *instr = nullptr;
 
 public:
     Converter(bool ohd) : ohd(ohd) {}
 
-    std::u16string to_html(const std::u16string &instr, FILE *outfilef = NULL, int outer_pos = 0)
+    std::string to_html(const std::string &instr, FILE *outfilef = NULL, int outer_pos = 0)
     {
         to_html_called_inside_to_html_outer_pos_arr.push_back(outer_pos);
 
-        std::list<std::u16string> result; // this should be faster than using regular u16string
+        std::list<std::string> result; // this should be faster than using regular string
         size_t result_total_len = 0;
-        auto write = [&result, &result_total_len](std::u16string &&s) {
+        auto write = [&result, &result_total_len](std::string &&s) {
             result_total_len += s.length();
             result.push_back(std::move(s));
         };
@@ -171,7 +126,7 @@ public:
             int line_start = -1;
             int t = 0;
             while (t < pos) {
-                if ((*this->instr)[t] == u'\n') {
+                if ((*this->instr)[t] == '\n') {
                     line++;
                     line_start = t;
                 }
@@ -182,15 +137,23 @@ public:
 
         int i = 0;
         auto next_char = [&i, &instr](int offset = 1) {
-            return i + offset < instr.length() ? instr[i + offset] : u'\0';
+            return i + offset < instr.length() ? instr[i + offset] : '\0';
+        };
+
+        auto i_next_str3 = [&i, &instr](const StringLiteral s) {
+            return i + 3 + s.len <= instr.length() && memcmp(instr.c_str() + i + 3, s.s, s.len) == 0;
         };
 
         auto i_next_str = [&i, &instr](const StringLiteral s) {
-            return i + 1 + s.len <= instr.length() && memcmp(instr.c_str() + i + 1, s.s, s.len * sizeof(char16_t)) == 0;
+            return i + 1 + s.len <= instr.length() && memcmp(instr.c_str() + i + 1, s.s, s.len) == 0;
+        };
+
+        auto ch_is = [&i, &instr](const StringLiteral s) {
+            return i + s.len <= instr.length() && memcmp(instr.c_str() + i, s.s, s.len) == 0;
         };
 
         auto prev_char = [&i, &instr](int offset = 1) {
-            return i - offset >= 0 ? instr[i - offset] : u'\0';
+            return i - offset >= 0 ? instr[i - offset] : '\0';
         };
 
         int writepos = 0;
@@ -200,46 +163,42 @@ public:
             writepos = npos;
         };
 
-        auto write_to_i = [&i, &write, &write_to_pos](std::u16string &&add_str, int skip_chars = 1)
+        auto write_to_i = [&i, &write, &instr, &write_to_pos](std::string &&add_str)
         {
-            write_to_pos(i, i + skip_chars);
+            assert(rune_len_at(instr, i) == 1);
+            write_to_pos(i, i + 1);
             write(std::move(add_str));
         };
 
         auto find_ending_pair_quote = [&exit_with_error, &instr](int i)
         {
-            assert(instr[i] == u'‘'); // ’
+            assert(memcmp(&instr[i], u8"‘", 3) == 0); // ’
             int startqpos = i;
             int nesting_level = 0;
             while (true) {
-                if (i == instr.length())
+                if (i >= instr.length() - 2)
                     exit_with_error("Unpaired left single quotation mark", startqpos);
-                switch (instr[i])
-                {
-                case u'‘':
+                if (memcmp(&instr[i], u8"‘", 3) == 0)
                     nesting_level++;
-                    break;
-                case u'’':
+                else if (memcmp(&instr[i], u8"’", 3) == 0)
                     if (--nesting_level == 0)
                         return i;
-                    break;
-                }
                 i++;
             }
         };
 
-        auto find_ending_sq_bracket = [&exit_with_error](const std::u16string &str, int i, int start = 0)
+        auto find_ending_sq_bracket = [&exit_with_error](const std::string &str, int i, int start = 0)
         {
             int starti = i;
-            assert(str[i] == u'['); // ]
+            assert(str[i] == '['); // ]
             int nesting_level = 0;
             while (true) {
                 switch (str[i])
                 {
-                case u'[':
+                case '[':
                     nesting_level++;
                     break;
-                case u']':
+                case ']':
                     if (--nesting_level == 0)
                         return i;
                     break;
@@ -250,9 +209,9 @@ public:
             }
         };
 
-        auto remove_comments = [&find_ending_sq_bracket](std::u16string &&s, int start, int level = 3) -> std::u16string&&
+        auto remove_comments = [&find_ending_sq_bracket](std::string &&s, int start, int level = 3) -> std::string&&
         {
-            std::u16string brackets(level, u'['); // ]
+            std::string brackets(level, '['); // ]
             while (true) {
                 size_t j = s.find(brackets);
                 if (j == s.npos)
@@ -264,26 +223,27 @@ public:
             return std::move(s);
         };
 
-        std::u16string link = u"";
+        std::string link;
 
-        auto write_http_link = [&exit_with_error, &find_ending_pair_quote, &find_ending_sq_bracket, &i, &instr, &link, &next_char, &write, &remove_comments, &write_to_pos, this](int startpos, int endpos, int q_offset = 1, std::u16string text = u"")
-        {
+        auto write_http_link = [&exit_with_error, &find_ending_pair_quote, &find_ending_sq_bracket, &i, &instr, &link, &i_next_str, &write, &remove_comments, &write_to_pos, this](int startpos, int endpos, int q_offset = 3, std::string text = "")
+        { // ‘
+            assert(memcmp(&instr[i], u8"’[", 4) == 0 || instr[i] == '['); // ]]
             int nesting_level = 0;
-            i += 2;
+            i += 4;
             while (true) {
                 if (i == instr.length())
                     exit_with_error("Unended link", endpos + q_offset);
                 switch (instr[i])
                 {
-                case u'[':
+                case '[':
                     nesting_level++;
                     break;
-                case u']':
+                case ']':
                     if (nesting_level == 0)
                         goto break_;
                     nesting_level--;
                     break;
-                case u' ':
+                case ' ':
                     goto break_;
                     break;
                 }
@@ -291,30 +251,30 @@ public:
             }
             break_:;
             link = html_escapeq(substr(instr, endpos + 1 + q_offset, i));
-            auto tag = u"<a href=\"" + link + u"\"";
-            if (starts_with(link, u"./"))
-                tag += u" target=\"_self\"";
+            auto tag = "<a href=\"" + link + "\"";
+            if (starts_with(link, "./"))
+                tag += " target=\"_self\"";
 
-            if (instr[i] == u' ') {
-                tag += u" title=\"";
-                if (next_char() == u'‘') {
+            if (instr[i] == ' ') {
+                tag += " title=\"";
+                if (i_next_str(u8"‘")) {
                     int endqpos2 = find_ending_pair_quote(i + 1); // [[
-                    if (instr[endqpos2 + 1] != u']')
-                        exit_with_error("Expected `]` after `’`", endqpos2 + 1);
-                    tag += html_escapeq(remove_comments(substr(instr, i + 2, endqpos2), i + 2));
-                    i = endqpos2 + 1;
+                    if (instr[endqpos2 + 3] != ']')
+                        exit_with_error("Expected `]` after `’`", endqpos2 + 3);
+                    tag += html_escapeq(remove_comments(substr(instr, i + 4, endqpos2), i + 4));
+                    i = endqpos2 + 3;
                 }
                 else {
                     int endb = find_ending_sq_bracket(instr, endpos + q_offset);
                     tag += html_escapeq(remove_comments(substr(instr, i + 1, endb), i + 1));
                     i = endb;
                 }
-                tag += u"\"";
+                tag += "\"";
             }
-            if (next_char() == u'[' && next_char(2) == u'-') {
+            if (i_next_str(u8"[-")) {
                 int j = i + 3;
                 while (j < instr.length()) {
-                    if (instr[j] == u']') {
+                    if (instr[j] == ']') {
                         i = j;
                         break;
                     }
@@ -327,261 +287,286 @@ public:
                 write_to_pos(startpos, i + 1);
                 text = to_html(substr(instr, startpos + q_offset, endpos), nullptr, startpos + q_offset);
             }
-            write(tag + u">" + (!text.empty() ? text : link) + u"</a>");
+            write(tag + ">" + (!text.empty() ? text : link) + "</a>");
         };
 
-        auto write_abbr = [&exit_with_error, &find_ending_pair_quote, &i, &instr, &write, &remove_comments, &write_to_pos](int startpos, int endpos, int q_offset = 1)
+        auto write_abbr = [&exit_with_error, &find_ending_pair_quote, &i, &instr, &write, &remove_comments, &write_to_pos](int startpos, int endpos, int q_offset = 3)
         {
             i += q_offset;
             int endqpos2 = find_ending_pair_quote(i + 1); // [[
-            if (instr[endqpos2 + 1] != u']') // ‘
-                exit_with_error("Bracket ] should follow after ’", endqpos2 + 1);
-            write_to_pos(startpos, endqpos2 + 2);
-            write(u"<abbr title=\"" + html_escapeq(remove_comments(substr(instr, i + 2, endqpos2), i + 2)) + u"\">" + html_escape(remove_comments(substr(instr, startpos + q_offset, endpos), startpos + q_offset)) + u"</abbr>");
-            i = endqpos2 + 1;
+            if (instr[endqpos2 + 3] != ']') // ‘
+                exit_with_error("Bracket ] should follow after ’", endqpos2 + 3);
+            write_to_pos(startpos, endqpos2 + 4);
+            write("<abbr title=\"" + html_escapeq(remove_comments(substr(instr, i + 4, endqpos2), i + 4)) + "\">" + html_escape(remove_comments(substr(instr, startpos + q_offset, endpos), startpos + q_offset)) + "</abbr>");
+            i = endqpos2 + 3;
         };
 
-        std::vector<std::u16string> ending_tags;
-        std::u16string new_line_tag = std::u16string(1, u'\0');
+        std::vector<std::string> ending_tags;
+        std::string new_line_tag = std::string(1, '\0');
 
         while (i < instr.length()) {
-            char16_t ch = instr[i];
-            if ((i == 0 || prev_char() == u'\n' || (i == writepos && !ending_tags.empty() && in(ending_tags.back(), u"</blockquote>", u"</div>")) && in(instr.substr(i - 2, 2), u">‘", u"<‘", u"!‘"))) { // ’’’
-                if (ch == u'.' && next_char() == u' ')
-                    write_to_i(u"•");
-                else if (in(ch, u'>', u'<') && in(next_char(), u" ‘[")) { // ]’
-                    write_to_pos(i, i + 2);
-                    write(u"<blockquote"s + (ch == u'<' ? u" class=\"re\"" : u"") + u">");
-                    if (next_char() == u' ')
-                        new_line_tag = u"</blockquote>";
+            char ch = instr[i];
+            if ((i == 0 || prev_char() == '\n' || (i == writepos && !ending_tags.empty() && in(ending_tags.back(), "</blockquote>", "</div>")) && in(instr.substr(i - 4, 4), u8">‘", u8"<‘", u8"!‘"))) { // ’’’
+                if (ch == '.' && next_char() == ' ')
+                    write_to_i(u8"•");
+                else if (in(ch, '>', '<') && (in(next_char(), " [") || i_next_str(u8"‘"))) { // ]’
+                    write_to_pos(i, i + 2/* + (i_next_str(u8"‘") ? 2 : 0)*/); // ’
+                    write("<blockquote"s + (ch == '<' ? " class=\"re\"" : "") + ">");
+                    if (next_char() == ' ')
+                        new_line_tag = "</blockquote>";
                     else {
-                        if (next_char() == u'[') {
-                            if (next_char(2) == u'-' && isdigit(next_char(3))) {
-                                i = (int)instr.find(u']', i + 4) + 1;
-                                writepos = i + 2;
+                        if (next_char() == '[') {
+                            if (next_char(2) == '-' && isdigit(next_char(3))) {
+                                i = (int)instr.find(']', i + 4) + 1;
                             }
                             else {
                                 i++;
                                 int endb = find_ending_sq_bracket(instr, i);
                                 link = substr(instr, i + 1, endb);
-                                size_t spacepos = link.find(u' ');
+                                size_t spacepos = link.find(' ');
                                 if (spacepos != link.npos)
                                     link = link.substr(0, spacepos);
-                                if (link.length() > 57)
-                                    link = link.substr(0, link.rfind(u'/', 46) + 1) + u"...";
-                                write_http_link(i, i, 0, u"<i>" + link + u"</i>");
+                                int link_length = 0, pos46;
+                                for (int i = 0; i < link.length();) {
+                                    link_length++;
+                                    i += rune_len_at(link, i);
+                                    if (link_length == 46)
+                                        pos46 = i;
+                                }
+                                if (link_length > 57)
+                                    link = link.substr(0, link.rfind('/', pos46) + 1) + "...";
+                                write_http_link(i, i, 0, "<i>" + link + "</i>");
                                 i++;
-                                if (instr.substr(i, 2) != u":‘") // ’
+                                if (instr.substr(i, 4) != u8":‘") // ’
                                     exit_with_error("Quotation with url should always has :‘...’ after [http(s)://url]", i);
-                                write(u":<br />\n");
-                                writepos = i + 2;
+                                write(":<br />\n");
                             }
                         }
                         else {
                             int endqpos = find_ending_pair_quote(i + 1);
-                            if (instr[endqpos + 1] == u'[') { // ]
+                            if (instr[endqpos + 3] == '[') { // ]
                                 int startqpos = i + 1;
                                 i = endqpos;
-                                write(u"<i>");
+                                write("<i>");
                                 assert(writepos == startqpos + 1);
                                 writepos = startqpos;
                                 write_http_link(startqpos, endqpos);
-                                write(u"</i>");
+                                write("</i>");
                                 i++;
-                                if (instr.substr(i, 2) != u":‘") // ’
+                                if (instr.substr(i, 4) != u8":‘") // ’
                                     exit_with_error("Quotation with url should always has :‘...’ after [http(s)://url]", i);
-                                write(u":<br />\n");
-                                writepos = i + 2;
+                                write(":<br />\n");
                             }
-                            else if (instr[endqpos + 1] == u':') {
-                                write(u"<i>" + substr(instr, i + 2, endqpos) + u"</i>:<br />\n");
-                                i = endqpos + 1;
-                                if (instr.substr(i, 2) != u":‘") // ’
+                            else if (instr[endqpos + 3] == ':') {
+                                write("<i>" + substr(instr, i + 4, endqpos) + "</i>:<br />\n");
+                                i = endqpos + 3;
+                                if (instr.substr(i, 4) != u8":‘") // ’
                                     exit_with_error("Quotation with author's name should be in the form >‘Author's name’:‘Quoted text.’", i);
-                                writepos = i + 2;
                             }
                         }
-                        ending_tags.push_back(u"</blockquote>");
+                        writepos = i + 4;
+                        ending_tags.push_back("</blockquote>");
                     }
-                    i += 2;
+                    i++;
+                    i += rune_len_at(instr, i);
                     continue;
                 }
             }
 
-            if (ch == u'‘') {
+            if (ch_is(u8"‘")) {
                 int prevci = i - 1;
-                char16_t prevc = prevci >= 0 ? instr[prevci] : u'\0';
+                char prevc = '\0', prevc2[2] = "\0";
+                if (prevci >= 0) {
+                    if ((instr[prevci] & 0b1100'0000) == 0b1000'0000) { // this is a continuation byte
+                        prevci -= 1;
+                        //assert((instr[prevci] & 0b1100'0000) != 0b1000'0000);
+                        //assert((instr[prevci] & 0b1110'0000) == 0b1100'0000);
+                    //  prevc  = instr[prevci];
+                    //  prevc2 = instr[prevci + 1];
+                        prevc2[0] = instr[prevci];
+                        prevc2[1] = instr[prevci + 1];
+                    }
+                    else
+                        prevc = instr[prevci];
+                }
                 int startqpos = i;
                 i = find_ending_pair_quote(i);
                 int endqpos = i;
-                std::u16string str_in_p; // (
-                if (prevc == u')') {
-                    size_t openp = instr.rfind(u'(', prevci - 1); // )
+                std::string str_in_p; // (
+                if (prevc == ')') {
+                    size_t openp = instr.rfind('(', prevci - 1); // )
                     if (openp != instr.npos && openp > 0) {
                         str_in_p = substr(instr, (int)openp + 1, startqpos - 1);
                         prevci = (int)openp - 1;
                         prevc = instr[prevci];
+                        if ((prevc & 0b1100'0000) == 0b1000'0000) { // this is a continuation byte
+                            prevci -= 1;
+                            prevc2[0] = instr[prevci];
+                            prevc2[1] = instr[prevci + 1];
+                        }
                     }
                 }
-                if (i_next_str(u"[http") || i_next_str(u"[./")) // ]]
+                if (i_next_str3("[http") || i_next_str3("[./")) // ]]
                     write_http_link(startqpos, endqpos);
-                else if (i_next_str(u"[‘")) // ’]
+                else if (i_next_str3(u8"[‘")) // ’]
                     write_abbr(startqpos, endqpos);
-                else if (in(prevc, u"0OО")) {
-                    write_to_pos(prevci, endqpos + 1);
-                    write(replace_all(html_escape(substr(instr, startqpos + 1, endqpos)), u"\n", u"<br />\n"));
+                else if (in(prevc, "0O") || /*(prevc == u8"О"[0] && prevc2 == u8"О"[1])*/memcmp(prevc2, u8"О", 2) == 0) {
+                    write_to_pos(prevci, endqpos + 3);
+                    write(replace_all(html_escape(substr(instr, startqpos + 3, endqpos)), "\n", "<br />\n"));
                 }
-                else if (in(prevc, u"<>") && prevci >= 1 && in(instr[prevci - 1], u"<>")) {
-                    write_to_pos(prevci - 1, endqpos + 1);
-                    auto a = std::u16string(1, instr[prevci - 1]) + prevc;
-                    write(u"<div align=\""s + (a == u"<<" ? u"left" : a == u">>" ? u"right" : a == u"><" ? u"center" : u"justify") + u"\">" + (to_html(substr(instr, startqpos + 1, endqpos), nullptr, startqpos + 1)) + u"</div>\n");
-                    new_line_tag = u"";
+                else if (in(prevc, "<>") && prevci >= 1 && in(instr[prevci - 1], "<>")) {
+                    write_to_pos(prevci - 1, endqpos + 3);
+                    auto a = std::string(1, instr[prevci - 1]) + prevc;
+                    write("<div align=\""s + (a == "<<" ? "left" : a == ">>" ? "right" : a == "><" ? "center" : "justify") + "\">" + (to_html(substr(instr, startqpos + 3, endqpos), nullptr, startqpos + 3)) + "</div>\n");
+                    new_line_tag = "";
                 }
-                else if (i_next_str(u":‘") && instr.substr(find_ending_pair_quote(i + 2) + 1, 1) == u"<") {
-                    int endrq = find_ending_pair_quote(i + 2);
-                    i = endrq + 1;
+                else if (i_next_str3(u8":‘") && instr.substr(find_ending_pair_quote(i + 4) + 3, 1) == "<") {
+                    int endrq = find_ending_pair_quote(i + 4);
+                    i = endrq + 3;
                     write_to_pos(prevci + 1, i + 1);
-                    write(u"<blockquote>" + to_html(substr(instr, startqpos + 1, endqpos), nullptr, startqpos + 1) + u"<br />\n<div align='right'><i>" + substr(instr, endqpos + 3, endrq) + u"</i></div></blockquote>");
-                    new_line_tag = u"";
+                    write("<blockquote>" + to_html(substr(instr, startqpos + 3, endqpos), nullptr, startqpos + 3) + "<br />\n<div align='right'><i>" + substr(instr, endqpos + 7, endrq) + "</i></div></blockquote>");
+                    new_line_tag = "";
                 }
                 else {
                     i = startqpos;
-                    if (in(prevc, u"*_-~")) {
-                        write_to_pos(i - 1, i + 1);
-                        char16_t tag = prevc == u'*' ? u'b' : prevc == u'_' ? u'u' : prevc == u'-' ? u's' : u'i';
-                        write(u"<"s + tag + u">");
-                        ending_tags.push_back(u"</"s + tag + u">");
+                    if (in(prevc, "*_-~")) {
+                        write_to_pos(i - 1, i + 3);
+                        char tag = prevc == '*' ? 'b' : prevc == '_' ? 'u' : prevc == '-' ? 's' : 'i';
+                        write("<"s + tag + ">");
+                        ending_tags.push_back("</"s + tag + ">");
                     }
-                    else if (in(prevc, u"HН")) {
-                        write_to_pos(prevci, i + 1);
+                    else if (prevc == 'H' || /*(prevc == u8"Н"[0] && prevc2 == u8"Н"[1])*/memcmp(prevc2, u8"Н", 2) == 0) {
+                        write_to_pos(prevci, i + 3);
                         int h = 0;
                         if (!str_in_p.empty())
-                            if (str_in_p[0] == u'-')
-                                h = -(str_in_p[1] - u'0');
-                            else if (str_in_p[0] == u'+')
-                                h = str_in_p[1] - u'0';
+                            if (str_in_p[0] == '-')
+                                h = -(str_in_p[1] - '0');
+                            else if (str_in_p[0] == '+')
+                                h = str_in_p[1] - '0';
                             else
-                                h = str_in_p[0] - u'0';
-                        auto tag = u"h"s + char16_t(u'0' + std::min(std::max(3 - h, 1), 6));
-                        write(u"<" + tag + u">");
-                        ending_tags.push_back(u"</" + tag + u">");
+                                h = str_in_p[0] - '0';
+                        auto tag = "h"s + char('0' + std::min(std::max(3 - h, 1), 6));
+                        write("<" + tag + ">");
+                        ending_tags.push_back("</" + tag + ">");
                     }
-                    else if (prevci >= 1 && in(instr.substr(prevci - 1, 2), u"/\\", u"\\/")) {
-                        write_to_pos(prevci - 1, i + 1);
-                        auto tag = instr.substr(prevci - 1, 2) == u"/\\" ? u"sup"s : u"sub"s;
-                        write(u"<" + tag + u">");
-                        ending_tags.push_back(u"</"s + tag + u">"s);
+                    else if (prevci >= 1 && in(instr.substr(prevci - 1, 2), "/\\", "\\/")) {
+                        write_to_pos(prevci - 1, i + 3);
+                        auto tag = instr.substr(prevci - 1, 2) == "/\\" ? "sup" : "sub";
+                        write("<"s + tag + ">");
+                        ending_tags.push_back("</"s + tag + ">");
                     }
-                    else if (prevc == u'!') {
-                        write_to_pos(prevci, i + 1);
-                        write(u"<div class=\"note\">");
-                        ending_tags.push_back(u"</div>");
+                    else if (prevc == '!') {
+                        write_to_pos(prevci, i + 3);
+                        write("<div class=\"note\">");
+                        ending_tags.push_back("</div>");
                     }
                     else
-                        ending_tags.push_back(u"’");
+                        ending_tags.push_back(u8"’");
                 }
             }
-            else if (ch == u'’') {
-                write_to_pos(i, i + 1);
+            else if (ch_is(u8"’")) {
+                write_to_pos(i, i + 3);
                 if (ending_tags.empty())
                     exit_with_error("Unpaired right single quotation mark", i);
                 auto last = std::move(ending_tags.back());
                 ending_tags.pop_back();
-                if (next_char() == u'\n' && (starts_with(last, u"</h") || in(last, u"</blockquote>", u"</div>"))) {
+                if (next_char(3) == '\n' && (starts_with(last, "</h") || in(last, "</blockquote>", "</div>"))) {
                     write(std::move(last));
-                    write(u"\n");
-                    i++;
+                    write("\n");
+                    i += 3;
+                    assert(rune_len_at(instr, writepos) == 1);
                     writepos++;
                 }
                 else
                     write(std::move(last));
             }
-            else if (ch == u'`') {
+            else if (ch == '`') {
                 int start = i;
                 i++;
                 while (i < instr.length()) {
-                    if (instr[i] != u'`')
+                    if (instr[i] != '`')
                         break;
                     i++;
                 }
-                size_t end = instr.find(std::u16string(i - start, u'`'), i);
+                size_t end = instr.find(std::string(i - start, '`'), i);
                 if (end == instr.npos)
                     exit_with_error("Unended ` started", start);
                 write_to_pos(start, (int)end + i - start);
                 auto ins = substr(instr, i, (int)end);
-                int delta = (int)std::count(ins.begin(), ins.end(), u'‘') - (int)std::count(ins.begin(), ins.end(), u'’'); // it ‘looks like’/‘seems that’ this can be written more optimally (`std::count(instr.begin() + i, instr.begin() + end, ...)`), but it is not (because of `ins = html_escape(std::move(ins));`)
+                int delta = 0;
+                if (ins.length() >= 3)
+                    for (size_t i = 0, n = ins.length() - 2; i < n; i++)
+                        if (memcmp(&ins[i], u8"‘", 3) == 0)
+                            delta++;
+                        else if (memcmp(&ins[i], u8"’", 3) == 0)
+                            delta--;
                 if (delta > 0)
                     for (int i = 0; i < delta; i++) // ‘‘
-                        ending_tags.push_back(u"’");
+                        ending_tags.push_back(u8"’");
                 else
                     for (int i = 0; i < -delta; i++) {
-                        if (ending_tags.back() != u"’")
+                        if (ending_tags.back() != u8"’")
                             exit_with_error("Unpaired single quotation mark found inside code block/span beginning", start);
                         ending_tags.pop_back();
                     }
                 ins = html_escape(std::move(ins));
-                if (ins.find(u'\n') == ins.npos)
-                    write(u"<pre class=\"inline_code\">" + ins + u"</pre>");
+                if (ins.find('\n') == ins.npos)
+                    write("<pre class=\"inline_code\">" + ins + "</pre>");
                 else {
-                    write(u"<pre>" + ins + u"</pre>\n");
-                    new_line_tag = u"";
+                    write("<pre>" + ins + "</pre>\n");
+                    new_line_tag = "";
                 }
                 i = (int)end + i - start - 1;
             }
-            else if (ch == u'[') { // ]
-                if (i_next_str(u"http") || i_next_str(u"./") || (i_next_str(u"‘") && !in(prev_char(), u"\r\n\t \0"))) {
+            else if (ch == '[') { // ]
+                if (i_next_str("http") || i_next_str("./") || (i_next_str(u8"‘") && !in(prev_char(), "\r\n\t \0"))) {
                     int s = i - 1;
-                    while (s >= writepos && !in(instr[s], u"\r\n\t [{(")) // )}]
+                    while (s >= writepos && !in(instr[s], "\r\n\t [{(")) // )}]
                         s--;
-                    if (i_next_str(u"‘"))
+                    if (i_next_str(u8"‘"))
                         write_abbr(s + 1, i, 0);
-                    else if (i_next_str(u"http") || i_next_str(u"./"))
+                    else if (i_next_str(u8"http") || i_next_str(u8"./"))
                         write_http_link(s + 1, i, 0);
                     else
                         assert(false);
                 }
-                else if (i_next_str(u"[[")) { // ]]
+                else if (i_next_str(u8"[[")) { // ]]
                     int comment_start = i;
                     int nesting_level = 0;
                     while (true) {
-                        switch (instr[i])
-                        {
-                        case u'[':
+                        char c = instr[i];
+                        if (c == '[')
                             nesting_level++;
-                            break;
-                        case u']':
+                        else if (c == ']') {
                             if (--nesting_level == 0)
-                                goto break_2;
-                            break;
-                        case u'‘':
-                            ending_tags.push_back(u"’");
-                            break;
-                        case u'’':
-                            assert(ending_tags.back() == u"’");
+                                break;
+                        }
+                        else if (c == u8"‘"[0] && instr[i+1] == u8"‘"[1] && instr[i+2] == u8"‘"[2])
+                            ending_tags.push_back(u8"’");
+                        else if (c == u8"’"[0] && instr[i + 1] == u8"’"[1] && instr[i + 2] == u8"’"[2]) {
+                            assert(ending_tags.back() == u8"’");
                             ending_tags.pop_back();
-                            break;
                         }
                         i++;
                         if (i == instr.length())
                             exit_with_error("Unended comment started", comment_start);
                     }
-                    break_2:;
                     write_to_pos(comment_start, i + 1);
                 }
                 else
-                    write_to_i((ohd ? u"<span class=\"sq\"><span class=\"sq_brackets\">"s : u""s) + u"[" + (ohd ? u"</span>" : u""));
+                    write_to_i((ohd ? "<span class=\"sq\"><span class=\"sq_brackets\">"s : ""s) + "[" + (ohd ? "</span>" : ""));
             }
-            else if (ch == u']') // [
-                write_to_i((ohd ? u"<span class=\"sq_brackets\">"s : u""s) + u"]" + (ohd ? u"</span></span>" : u""));
-            else if (ch == u'{')
-                write_to_i((ohd ? u"<span class=\"cu_brackets\" onclick=\"return spoiler(this, event)\"><span class=\"cu_brackets_b\">"s : u""s) + u"{" + (ohd ? u"</span><span>…</span><span class=\"cu\" style=\"display: none\">" : u""));
-            else if (ch == u'}')
-                write_to_i((ohd ? u"</span><span class=\"cu_brackets_b\">"s : u""s) + u"}" + (ohd ? u"</span></span>" : u""));
-            else if (ch == u'\n') {
-                write_to_i((new_line_tag != std::u16string(1, u'\0') ? new_line_tag : u"<br />"s) + (new_line_tag != u"" ? u"\n" : u""));
-                new_line_tag = std::u16string(1, u'\0');
+            else if (ch == ']') // [
+                write_to_i((ohd ? "<span class=\"sq_brackets\">"s : ""s) + "]" + (ohd ? "</span></span>" : ""));
+            else if (ch == '{')
+                write_to_i((ohd ? "<span class=\"cu_brackets\" onclick=\"return spoiler(this, event)\"><span class=\"cu_brackets_b\">"s : ""s) + "{" + (ohd ? u8"</span><span>…</span><span class=\"cu\" style=\"display: none\">" : ""));
+            else if (ch == '}')
+                write_to_i((ohd ? "</span><span class=\"cu_brackets_b\">"s : ""s) + "}" + (ohd ? "</span></span>" : ""));
+            else if (ch == '\n') {
+                write_to_i((new_line_tag != std::string(1, '\0') ? new_line_tag : "<br />"s) + (new_line_tag != "" ? "\n" : ""));
+                new_line_tag = std::string(1, '\0');
             }
-            i++;
+            i += rune_len_at(instr, i);
         }
 
         write_to_pos((int)instr.length(), 0);
@@ -590,7 +575,7 @@ public:
         assert(to_html_called_inside_to_html_outer_pos_arr.back() == outer_pos);
         to_html_called_inside_to_html_outer_pos_arr.pop_back();
 
-        std::u16string result_str;
+        std::string result_str;
         result_str.reserve(result_total_len);
         for (auto &&it : result)
             result_str += it;
@@ -598,13 +583,12 @@ public:
         if (outfilef == NULL)
             return result_str;
 
-        std::string rstr = utf16_to_utf8(result_str);
-        fwrite(rstr.data(), rstr.size(), 1, outfilef);
-        return u"";
+        fwrite(result_str.data(), result_str.size(), 1, outfilef);
+        return "";
     }
 };
 
-auto to_html(const std::u16string &instr, FILE *outfilef = NULL, bool ohd = false)
+auto to_html(const std::string &instr, FILE *outfilef = NULL, bool ohd = false)
 {
     return Converter(ohd).to_html(instr, outfilef);
 }
@@ -615,13 +599,13 @@ template <int N> void write_to_file(FILE *file, const char(&s)[N])
 }
 
 // [https://stackoverflow.com/a/46931770/2692494 <- google:‘c++ split’]
-std::vector<std::u16string> split(const std::u16string &s, const std::u16string &delimiter)
+std::vector<std::string> split(const std::string &s, const std::string &delimiter)
 {
     size_t pos_start = 0, pos_end, delim_len = delimiter.length();
-    std::u16string token;
-    std::vector<std::u16string> res;
+    std::string token;
+    std::vector<std::string> res;
 
-    while ((pos_end = s.find(delimiter, pos_start)) != std::u16string::npos) {
+    while ((pos_end = s.find(delimiter, pos_start)) != std::string::npos) {
         token = s.substr(pos_start, pos_end - pos_start);
         pos_start = pos_end + delim_len;
         res.push_back(token);
@@ -644,14 +628,14 @@ int main(int argc, char *argv[])
         fread(const_cast<char*>(tests_file_str.data()), tests_file_size, 1, tests_file);
         fclose(tests_file);
 
-        std::u16string tests_str = utf8_to_utf16(tests_file_str), delim = u" (()) ";
+        std::string delim = " (()) ";
 
         int tests_cnt = 0;
-        for (auto &&test : split(tests_str, u"|\n\n|")) {
+        for (auto &&test : split(tests_file_str, "|\n\n|")) {
             tests_cnt++;
             size_t delim_pos = test.find(delim);
-            std::u16string left = test.substr(0, delim_pos),
-                          right = test.substr(delim_pos + delim.length());
+            std::string left = test.substr(0, delim_pos),
+                       right = test.substr(delim_pos + delim.length());
             if (to_html(left) != right) {
                 std::cerr << "Error in test #" << tests_cnt << "\n";
                 return -1;
@@ -785,7 +769,7 @@ div#main {width: 100%;}
 <div id="main" style="margin: 0 auto">
 )");
     try {
-        to_html(utf8_to_utf16(file_str), outfile, true);
+        to_html(file_str, outfile, true);
     }
     catch (const Exception &e) {
         std::cerr << e.message << " at line " << e.line << ", column " << e.column << "\n";

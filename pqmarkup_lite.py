@@ -242,7 +242,8 @@ class Converter:
                                 writepos = i + 2
                             # else this is just >‘Quoted text.’
                         ending_tags.append('</blockquote>')
-                    i += 1
+                    i += 2
+                    continue
 
             if ch == "‘":
                 prevci = i - 1
@@ -278,9 +279,9 @@ class Converter:
                     new_line_tag = ''
                 else:
                     i = startqpos # roll back the position
-                    if prev_char() in '*_-~':
+                    if prevc in '*_-~':
                         write_to_pos(i - 1, i + 1)
-                        tag = {'*':'b', '_':'u', '-':'s', '~':'i'}[prev_char()]
+                        tag = {'*':'b', '_':'u', '-':'s', '~':'i'}[prevc]
                         outfile.write('<' + tag + '>')
                         ending_tags.append('</' + tag + '>')
                     elif prevc in 'HН':
@@ -334,7 +335,7 @@ class Converter:
                 if not "\n" in ins: # this is a single-line code -‘block’span
                     outfile.write('<pre class="inline_code">' + ins + '</pre>')
                 else:
-                    outfile.write('<pre>' + ins + '</pre>' + "\n")
+                    outfile.write('<pre>' + ins + "</pre>\n")
                     new_line_tag = ''
                 i = end + i - start - 1
             elif ch == '[': # ]
