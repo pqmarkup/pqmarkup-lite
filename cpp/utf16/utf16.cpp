@@ -9,10 +9,18 @@ using namespace std::string_literals;
 #include <iostream>
 //#define assert(...) do {} while(false)
 #include <assert.h>
+#include <string.h>
 
 
 #if (!_DLL) && (_MSC_VER >= 1900 /* VS 2015*/) && (_MSC_VER <= 1914 /* VS 2017 */)
 std::locale::id std::codecvt<char16_t, char, _Mbstatet>::id; // [https://stackoverflow.com/a/46422184/2692494 <- google:‘codecvt msvc’]
+#endif
+
+#ifndef _MSC_VER
+void fopen_s(FILE **f, char const* fname, char const* mode)
+{
+    *f = fopen(fname, mode);
+}
 #endif
 
 /*
@@ -519,7 +527,11 @@ public:
                             exit_with_error("Unpaired single quotation mark found inside code block/span beginning", start);
                         ending_tags.pop_back();
                     }
-                ins = html_escape(std::move(ins));
+#ifdef _MSC_VER
+                ins = html_escape(std::move(ins)); // this code does not work in GCC for some reason
+#else
+                ins = html_escape(std::u16string(ins));
+#endif
                 if (ins.find(u'\n') == ins.npos)
                     write(u"<pre class=\"inline_code\">" + ins + u"</pre>");
                 else {

@@ -10,7 +10,15 @@ using namespace std::string_literals;
 #include <iostream>
 //#define assert(...) do {} while(false)
 #include <assert.h>
+#include <string.h>
 
+
+#ifndef _MSC_VER
+void fopen_s(FILE **f, char const* fname, char const* mode)
+{
+    *f = fopen(fname, mode);
+}
+#endif
 
 class Exception
 {
@@ -93,7 +101,9 @@ int rune_len_at(const std::string &s, int i)
     if (c >> 4 == 0b1110) return 3;
     if (c >> 3 == 0b11110) return 4;
     assert(false);
+#ifdef _MSC_VER
     __assume(0); // suppress warning C4715
+#endif
 }
 
 class Converter
@@ -509,7 +519,11 @@ public:
                             exit_with_error("Unpaired single quotation mark found inside code block/span beginning", start);
                         ending_tags.pop_back();
                     }
-                ins = html_escape(std::move(ins));
+#ifdef _MSC_VER
+                ins = html_escape(std::move(ins)); // this code does not work in GCC for some reason
+#else
+                ins = html_escape(std::string(ins));
+#endif
                 if (ins.find('\n') == ins.npos)
                     write("<pre class=\"inline_code\">" + ins + "</pre>");
                 else {
