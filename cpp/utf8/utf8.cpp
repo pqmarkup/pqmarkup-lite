@@ -319,6 +319,8 @@ public:
             if ((i == 0 || prev_char() == '\n' || (i == writepos && !ending_tags.empty() && in(ending_tags.back(), "</blockquote>", "</div>")) && in(instr.substr(i - 4, 4), u8">‘", u8"<‘", u8"!‘"))) { // ’’’
                 if (ch == '.' && next_char() == ' ')
                     write_to_i(u8"•");
+                else if (ch == ' ')
+                    write_to_i("&emsp;");
                 else if (in(ch, '>', '<') && (in(next_char(), " [") || i_next_str(u8"‘"))) { // ]’
                     write_to_pos(i, i + 2/* + (i_next_str(u8"‘") ? 2 : 0)*/); // ’
                     write("<blockquote"s + (ch == '<' ? " class=\"re\"" : "") + ">");

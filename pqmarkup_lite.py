@@ -194,6 +194,8 @@ class Converter:
                        or (i == writepos and len(ending_tags) != 0 and ending_tags[-1] in ('</blockquote>', '</div>') and instr[i-2:i] in ('>‘', '<‘', '!‘'))): # ’’’ # or beginning of blockquote or note
                 if ch == '.' and next_char() == ' ':
                     write_to_i('•')
+                elif ch == ' ':
+                    write_to_i('&emsp;')
                 elif ch in ('>', '<') and (next_char() in ' ‘['): # this is blockquote # ]’
                     write_to_pos(i, i + 2)
                     outfile.write('<blockquote'+(ch=='<')*' class="re"'+'>')

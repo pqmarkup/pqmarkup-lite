@@ -357,6 +357,8 @@ public:
             if ((i == 0 || prev_char() == u'\n' || (i == writepos && !ending_tags.empty() && in(ending_tags.back(), u"</blockquote>", u"</div>")) && in(instr.substr(i - 2, 2), u">‘", u"<‘", u"!‘"))) { // ’’’
                 if (ch == u'.' && next_char() == u' ')
                     write_to_i(u"•");
+                else if (ch == u' ')
+                    write_to_i(u"&emsp;");
                 else if (in(ch, u'>', u'<') && in(next_char(), u" ‘[")) { // ]’
                     write_to_pos(i, i + 2);
                     write(u"<blockquote"s + (ch == u'<' ? u" class=\"re\"" : u"") + u">");

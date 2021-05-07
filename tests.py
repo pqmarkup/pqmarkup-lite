@@ -56,17 +56,10 @@ TEST("[[[comment[[[[sensitive information]]]]]]]", "")
 TEST("[[[com]ment]]", "")
 TEST("[[[[comment]]]]", "")
 TEST("[[[[[com]m]e]n]t]", "")
+TEST("\n A", "<br />\n&emsp;A")
+TEST(" A", "&emsp;A")
 TEST("a\n---=\n", "a<br />\n---=<br />\n")
 TEST("a0‘*‘<non-bold>’’", "a*‘&lt;non-bold>’")
-TEST("""‘title’{
-te
-}
-xt""", """<span class="spoiler_title" onclick="return spoiler2(this, event)">title<br /></span><div class="spoiler_text" style="display: none">
-te<br />
-</div>
-xt""", ohd = True) # пока что фиксирую такой некрасивый HTML-код, так как например этот HTML-код работает некорректно: '<span class="spoiler_title" onclick="return spoiler2(this, event)">title</span><div class="spoiler_text" style="display:none">te<br />\n</div><br />\nxt'
-                   #                                                                                      и этот тоже: '<span class="spoiler_title" onclick="return spoiler2(this, event)">title</span><div class="spoiler_text" style="display:none">te</div><br />\nxt'
-                   #                                                                                           и этот: '<span class="spoiler_title" onclick="return spoiler2(this, event)">title</span><div class="spoiler_text" style="display:none">te</div>xt'
 #TEST(open("tests/test1.pq", encoding="utf-8").read(), open("tests/test1.pq.to_habr_html", encoding="utf-8").read(), habr_html = True) # для проверки безопасности рефакторинга нужен был какой-либо обширный тестовый текст на пк-разметке [-TODO подобрать такой текст, который не стыдно закоммитить :)(:-]
 TEST("""<<‘выравнивание по левому краю’
 >>‘выравнивание по правому краю’
