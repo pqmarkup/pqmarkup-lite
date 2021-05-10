@@ -759,16 +759,6 @@ ul li:first-child, ol li:first-child {padding-top   : 0;}
 ul  li:last-child, ol  li:last-child {padding-bottom: 0;}
 table {margin: 9px 0; border-collapse: collapse;}
 table th, table td {padding: 6px 13px; border: 1px solid #BFBFBF;}
-span.spoiler_title {
-    color: #548eaa;
-    cursor: pointer;
-    border-bottom: 1px dotted;
-}
-div.spoiler_text {
-    /*border: 1px dotted;*/
-    margin: 5px;
-    padding: 3px;
-}
 blockquote {
     margin: 0 0 7px 0;
     padding: 7px 12px;
