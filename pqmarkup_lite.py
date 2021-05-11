@@ -371,13 +371,25 @@ class Converter:
                             exit_with_error('Unended comment started', comment_start)
                     write_to_pos(comment_start, i+1)
                 else:
-                    write_to_i('<span class="sq"><span class="sq_brackets">'*self.ohd + '[' + self.ohd*'</span>')
+                    if self.ohd:
+                        write_to_i('<span class="sq"><span class="sq_brackets">[</span>')
+                    else:
+                        write_to_i('[')
             elif ch == "]": # [
-                write_to_i('<span class="sq_brackets">'*self.ohd + ']' + self.ohd*'</span></span>')
+                if self.ohd:
+                    write_to_i('<span class="sq_brackets">]</span></span>')
+                else:
+                    write_to_i(']')
             elif ch == "{":
-                write_to_i('<span class="cu_brackets" onclick="return spoiler(this, event)"><span class="cu_brackets_b">'*self.ohd + '{' + self.ohd*'</span><span>…</span><span class="cu" style="display: none">')
+                if self.ohd:
+                    write_to_i('<span class="cu_brackets" onclick="return spoiler(this, event)"><span class="cu_brackets_b">{</span><span>…</span><span class="cu" style="display: none">')
+                else:
+                    write_to_i('{')
             elif ch == "}":
-                write_to_i('</span><span class="cu_brackets_b">'*self.ohd + '}' + self.ohd*'</span></span>')
+                if self.ohd:
+                    write_to_i('</span><span class="cu_brackets_b">}</span></span>')
+                else:
+                    write_to_i('}')
             elif ch == "\n":
                 write_to_i((new_line_tag if new_line_tag != "\0" else "<br />") + ("\n" if new_line_tag != '' else ""))
                 new_line_tag = "\0"
