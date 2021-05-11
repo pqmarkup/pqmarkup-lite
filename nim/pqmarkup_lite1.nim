@@ -18,9 +18,9 @@ func newPqmException(message: string; line, column, pos: Natural): PqmException 
 
 type Runes = seq[Rune]  # Sequence of code points.
 
-# Templates used to construct Rune from char and Runes from string (using u'c' and u"s" syntax).
-template u(c: char): Rune = Rune(c)
-template u(str: string): Runes = str.toRunes
+# Procedures used to construct Rune from char and Runes from string (using u'c' and u"s" syntax).
+proc u(c: char): Rune {.compileTime.} = Rune(c)
+proc u(str: string): Runes {.compileTime.} = str.toRunes
 
 
 type Converter = ref object
@@ -28,16 +28,17 @@ type Converter = ref object
   ohd: bool
   runes: Runes
 
-func newConverter(ohd: bool): Converter {.inline.} =
+func newConverter(ohd: bool): Converter =
   result = Converter(ohd: ohd)
 
 const
   Alignments = {u"<<": "left", u">>": "right", u"><": "center", u"<>": "justify"}.toTable
   Styles = {u'*': "b", u'_': "u", u'-': "s", u'~': "i"}.toTable
-  LSQM = Rune(0x2018)   # left single quotation mark (‘).
-  RSQM = Rune(0x2019)   # right single quotation mark (’).
+  LSQM = Rune(0x2018)   # Left single quotation mark (‘).
+  RSQM = Rune(0x2019)   # Right single quotation mark (’).
   CyrEn = Rune(0x041D)  # Cyrillic letter EN.
   CyrO = Rune(0x041E)   # Cyrillic capital letter O.
+  BOM = "\xEF\xBB\xBF"  # UTF-8 BOM.
 
 
 # Additional procedures for Runes.
@@ -123,19 +124,15 @@ proc toHtml(conv: Converter; runes: Runes; outfilef: File = nil; outerPos = 0): 
     if i - offset >= 0: runes[i-offset] else: u'\0'
 
   proc htmlEscape(r: Runes): Runes =
-    const Amp = u"&amp;"
-    const Lt = u"&lt;"
     for rune in r:
-      if rune == '&': result.add Amp
-      elif rune == '<': result.add Lt
+      if rune == '&': result.add u"&amp;"
+      elif rune == '<': result.add u"&lt;"
       else: result.add rune
 
   proc htmlEscapeQ(r: Runes): Runes =
-    const Amp = u"&amp;"
-    const Quot = u"&quot;"
-    for rune in r:
-      if rune == '&': result.add Amp
-      elif rune == '"': result.add Quot
+   for rune in r:
+      if rune == '&': result.add u"&amp;"
+      elif rune == '"': result.add u"&quot;"
       else: result.add rune
 
   var writePos = 0
@@ -519,6 +516,12 @@ proc toHtml(conv: Converter; runes: Runes; outfilef: File = nil; outerPos = 0): 
   if outfilef.isNil:
     result = res
 
+proc toRunes(instr: string): Runes =
+  let start = if instr.startsWith(BOM): 1 else: 0   # BOM counts as one code points.
+  var i = 0
+  for rune in instr.runes():
+    if i >= start: result.add rune
+    inc i
 
 proc toHtml(instr: string; outfilef: File; ohd = false) =
   var conv = newConverter(ohd)

@@ -7,6 +7,7 @@ import math, sequtils, strutils, tables, unicode
 const
   Alignments = {"<<": "left", ">>": "right", "><": "center", "<>": "justify"}.toTable
   Styles = {"*": "b", "_": "u", "-": "s", "~": "i"}.toTable
+  BOM = "\xEF\xBB\xBF"  # UTF-8 BOM.
 
 
 type PqmException = ref object of CatchableError
@@ -497,14 +498,20 @@ proc toHtml(conv: Converter; instr: Utf8Seq; outfilef: File = nil; outerPos = 0)
   if outfilef.isNil:
     result = res
 
+proc toUtf8Seq(instr: string): Utf8Seq =
+  let start = if instr.startsWith(BOM): 1 else: 0   # BOM counts as one code point.
+  var i = 0
+  for cp in instr.utf8:
+    if i >= start: result.add cp
+    inc i
 
 proc toHtml(instr: string; outfilef: File; ohd = false) =
   var conv = newConverter(ohd)
-  discard conv.toHtml(toSeq(utf8(instr)), outfilef)
+  discard conv.toHtml(instr.toUtf8Seq, outfilef)
 
 proc toHtml(instr: string; ohd = false): string =
   var conv = newConverter(ohd)
-  result = conv.toHtml(toSeq(utf8(instr)))
+  result = conv.toHtml(instr.toUtf8Seq)
 
 
 when isMainModule:
