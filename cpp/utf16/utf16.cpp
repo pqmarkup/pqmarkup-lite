@@ -751,14 +751,7 @@ span.sq_brackets {color: #BFBFBF;}
 span.cu_brackets {cursor: pointer;}
 span.cu {background-color: #F7F7FF;}
 abbr {text-decoration: none; border-bottom: 1px dotted;}
-pre {margin: 0;}
-pre, code {font-family: 'Courier New'; line-height: normal}
-ul, ol {margin: 11px 0 7px 0;}
-ul li, ol li {padding: 7px 0;}
-ul li:first-child, ol li:first-child {padding-top   : 0;}
-ul  li:last-child, ol  li:last-child {padding-bottom: 0;}
-table {margin: 9px 0; border-collapse: collapse;}
-table th, table td {padding: 6px 13px; border: 1px solid #BFBFBF;}
+pre {margin: 0; font-family: 'Courier New'; line-height: normal;}
 blockquote {
     margin: 0 0 7px 0;
     padding: 7px 12px;
@@ -769,7 +762,6 @@ div.note {
     padding: 18px 20px;
     background: #ffffd7;
 }
-pre.code_block {padding: 6px 0;}
 pre.inline_code {
     display: inline;
     padding: 0px 3px;
@@ -777,7 +769,6 @@ pre.inline_code {
     background-color: #FAFAFA;
     border-radius: 3px;
 }
-img {vertical-align: middle;}
 
 div#main {width: 100%;}
 @media screen and (min-width: 750px) {
