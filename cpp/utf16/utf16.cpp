@@ -149,6 +149,11 @@ template <int N> bool in(char16_t c, const char16_t(&s)[N])
     return false;
 }
 
+bool is_in_utf16_surrogate_range(char16_t c)
+{
+    return c >= 0xD800 && c <= 0xDFFF;
+}
+
 class Converter
 {
     std::vector<int> to_html_called_inside_to_html_outer_pos_arr;
@@ -177,15 +182,19 @@ public:
             pos += std::accumulate(to_html_called_inside_to_html_outer_pos_arr.begin(), to_html_called_inside_to_html_outer_pos_arr.end(), 0);
             int line = 1;
             int line_start = -1;
-            int t = 0;
+            int t = 0, cpos = 0;
             while (t < pos) {
                 if ((*this->instr)[t] == u'\n') {
                     line++;
-                    line_start = t;
+                    line_start = cpos;
                 }
-                t++;
+                if (is_in_utf16_surrogate_range((*this->instr)[t]))
+                    t += 2;
+                else
+                    t++;
+                cpos++;
             }
-            throw Exception(message, line, pos - line_start, pos);
+            throw Exception(message, line, cpos - line_start, cpos);
         };
 
         int i = 0;
