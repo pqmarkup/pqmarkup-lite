@@ -134,15 +134,16 @@ public:
             pos += std::accumulate(to_html_called_inside_to_html_outer_pos_arr.begin(), to_html_called_inside_to_html_outer_pos_arr.end(), 0);
             int line = 1;
             int line_start = -1;
-            int t = 0;
+            int t = 0, cpos = 0;
             while (t < pos) {
                 if ((*this->instr)[t] == '\n') {
                     line++;
-                    line_start = t;
+                    line_start = cpos;
                 }
-                t++;
+                t += rune_len_at(*this->instr, t);
+                cpos++;
             }
-            throw Exception(message, line, pos - line_start, pos);
+            throw Exception(message, line, cpos - line_start, cpos);
         };
 
         int i = 0;
