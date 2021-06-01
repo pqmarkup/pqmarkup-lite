@@ -149,7 +149,7 @@ template <int N> bool in(char16_t c, const char16_t(&s)[N])
     return false;
 }
 
-bool is_in_utf16_surrogate_range(char16_t c)
+bool is_utf16_surrogate(char16_t c)
 {
     return c >= 0xD800 && c <= 0xDFFF;
 }
@@ -188,7 +188,7 @@ public:
                     line++;
                     line_start = cpos;
                 }
-                if (is_in_utf16_surrogate_range((*this->instr)[t]))
+                if (is_utf16_surrogate((*this->instr)[t]))
                     t += 2;
                 else
                     t++;
