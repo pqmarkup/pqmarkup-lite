@@ -1,0 +1,21 @@
+H(not a header)‘...’|
+
+|H(0b1)‘binary’|
+
+|H(0xA)‘hexadecimal’|
+
+|H(0xa)‘lower case hexadecimal’|
+
+|H(−1)‘minus instead of ASCII hyphen’|
+
+|H(1 0)‘space digit separator’
+
+|H(1,0)‘comma digit separator’|
+
+|H(1.0)‘dot digit separator’|
+
+|H(1,1)‘decimal comma’|
+
+|H(1.1)‘decimal dot’|
+
+|H(²)‘superscript’

@@ -1,5 +1,7 @@
 *‘bold’ (()) <b>bold</b>|
 
+|*‘̆ (combining character)’ (()) <b>̆ (combining character)</b>|
+
 |_‘underlined’ (()) <u>underlined</u>|
 
 |-‘strikethrough’ (()) <s>strikethrough</s>|
@@ -10,9 +12,29 @@
 H(1)‘header’ (()) <h3>header</h3>
 <h2>header</h2>|
 
+|Not a Header (()) Not a Header|
+
+|H(... ...not a header (()) H(... ...not a header|
+
+|H(not a header) (()) H(not a header)|
+
 |H(+1)‘header’ (()) <h2>header</h2>|
 
 |H(-1)‘header’ (()) <h4>header</h4>|
+
+|H(01)‘leading zero’ (()) <h2>leading zero</h2>|
+
+|H(7)‘too high’ (()) <h1>too high</h1>|
+
+|H(-7)‘too low’ (()) <h6>too low</h6>|
+
+|H( 1 )‘spaced’ (()) <h2>spaced</h2>|
+
+|H(1_0)‘underscore digit separator’ (()) <h1>underscore digit separator</h1>|
+
+|H(１)‘full width’ (()) <h2>full width</h2>|
+
+|H(١)‘arabic digits’ (()) <h2>arabic digits</h2>|
 
 |[http://address] (()) <a href="http://address">http://address</a>|
 
