@@ -19,6 +19,23 @@ impl<'a> Ast<'a> {
     }
 
     /// If this Ast node contains children nodes, return a list of them.
+    fn children(&self) -> Option<&Vec<Ast<'a>>> {
+        match self {
+            Ast::Root(nodes)
+            | Ast::Quoted { inner: nodes, .. }
+            | Ast::Bracketed(nodes)
+            | Ast::CurlyBraced(nodes)
+            | Ast::BlockQuoted(nodes)
+            | Ast::CodeQuoted(nodes)
+            | Ast::ProcessedPrefixSuffix(_, nodes, _)
+            | Ast::Header(_, nodes)
+            | Ast::Tooltip { inner: nodes, .. }
+            | Ast::Link { inner: nodes, .. } => Some(nodes),
+            Ast::Text(_) | Ast::CowText(_) | Ast::NoBrText(_) | Ast::TooltipText(_) => None,
+        }
+    }
+
+    /// If this Ast node contains children nodes, return a list of them.
     fn children_mut(&mut self) -> Option<&mut Vec<Ast<'a>>> {
         match self {
             Ast::Root(nodes)
@@ -332,7 +349,21 @@ fn process_spoilers(ast: &mut Ast<'_>) -> Result<(), PqLiteError> {
     Ok(())
 }
 
-fn is_url_tooltip(child2: &Ast<'_>) -> bool {
+fn contains_link(node: &Ast<'_>) -> bool {
+    if let Ast::Link { .. } = node {
+        return true;
+    }
+    if let Some(children) = node.children() {
+        for child in children {
+            if contains_link(child) {
+                return true;
+            }
+        }
+    }
+    false
+}
+
+fn is_pair_url_tooltip(child1: Option<&Ast<'_>>, child2: &Ast<'_>) -> bool {
     let bracketed_ast = match child2 {
         Ast::Bracketed(v) => v,
         _ => return false,
@@ -346,6 +377,13 @@ fn is_url_tooltip(child2: &Ast<'_>) -> bool {
         Some(Ast::Text(_)) => true,
         _ => false,
     };
+    if url {
+        if let Some(child1) = child1 {
+            if contains_link(child1) {
+                return false;
+            }
+        }
+    }
     match (tooltip, url, bracketed_ast.len()) {
         (true, false, 1) | (false, true, 1) | (true, true, 2) => true,
         _ => false,
@@ -405,8 +443,14 @@ fn remove_comments_for_tooltip(original_text: &str) -> Result<Cow<'_, str>, PqLi
 /// of text inside.
 fn pull_out_tooltip_text(ast: &mut Ast<'_>) -> Result<(), PqLiteError> {
     if let Some(children) = ast.children_mut() {
-        for child in children {
-            if is_url_tooltip(&child) {
+        for i in 0..children.len() {
+            let child1 = match i {
+                0 => None,
+                i => Some(&children[i - 1]),
+            };
+            let child2 = &children[i];
+            if is_pair_url_tooltip(child1, child2) {
+                let child = &mut children[i];
                 let bracketed_ast = match child {
                     Ast::Bracketed(v) => v,
                     _ => unreachable!(),
@@ -449,7 +493,7 @@ fn process_brackets(ast: &mut Ast<'_>) -> Result<(), PqLiteError> {
                 _ => Some(&mut split_to_access_children.0[i - 1]),
             };
             let child2 = &mut split_to_access_children.1[0];
-            if is_url_tooltip(&child2) {
+            if is_pair_url_tooltip(child1.as_ref().map(|c| &**c), &child2) {
                 let child2_owned = std::mem::replace(child2, Ast::Text(""));
                 let (url, tooltip) = bracket_child_to_url_and_tooltip(child2_owned);
                 let (extra_text, inner) = if let Some(child1) = &mut child1 {

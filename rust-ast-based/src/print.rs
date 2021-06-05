@@ -131,8 +131,6 @@ impl<'a> fmt::Display for Ast<'a> {
             } => {
                 f.write_str("<a href=\"")?;
                 write_attr_value_escaped(link_location, f)?;
-                // *shrug* reference impl does this so we will too, despite it
-                // not being in spec.
                 if link_location.starts_with("./") {
                     f.write_str("\" target=\"_self")?;
                 }
