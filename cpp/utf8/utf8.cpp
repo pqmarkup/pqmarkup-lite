@@ -13,7 +13,7 @@ using namespace std::string_literals;
 #include <string.h>
 
 
-#ifndef _MSC_VER
+#ifndef _WIN32
 void fopen_s(FILE **f, char const* fname, char const* mode)
 {
     *f = fopen(fname, mode);

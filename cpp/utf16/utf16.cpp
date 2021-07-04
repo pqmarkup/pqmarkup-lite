@@ -12,11 +12,11 @@ using namespace std::string_literals;
 #include <string.h>
 
 
-#if (!_DLL) && (_MSC_VER >= 1900 /* VS 2015*/) && (_MSC_VER <= 1914 /* VS 2017 */)
+#if !defined(_DLL) && (_MSC_VER >= 1900 /* VS 2015*/) && (_MSC_VER <= 1914 /* VS 2017 */)
 std::locale::id std::codecvt<char16_t, char, _Mbstatet>::id; // [https://stackoverflow.com/a/46422184/2692494 <- google:‘codecvt msvc’]
 #endif
 
-#ifndef _MSC_VER
+#ifndef _WIN32
 void fopen_s(FILE **f, char const* fname, char const* mode)
 {
     *f = fopen(fname, mode);
