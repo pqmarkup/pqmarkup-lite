@@ -424,7 +424,11 @@ if __name__ == '__main__':
 
     if len(sys.argv) < 3:
         print('Usage: pqmarkup_lite input-file output-file')
+        print('   or: pqmarkup_lite -t')
         sys.exit(0)
+
+    if sys.argv[1].endswith('tests.txt'):
+        sys.exit('To run tests please use -t command line option!')
 
     args_infile = sys.stdin
     try:
