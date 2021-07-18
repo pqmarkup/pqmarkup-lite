@@ -1,0 +1,15 @@
+.dub
+docs.json
+__dummy.html
+docs/
+/pqmarkup-lite
+pqmarkup-lite.so
+pqmarkup-lite.dylib
+pqmarkup-lite.dll
+pqmarkup-lite.a
+pqmarkup-lite.lib
+pqmarkup-lite-test-*
+*.exe
+*.o
+*.obj
+*.lst
