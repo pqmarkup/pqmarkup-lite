@@ -2,7 +2,7 @@ module app;
 
 import std : Nullable;
 import jcli : CommandDefault, CommandPositionalArg, CommandNamedArg, Result, CommandHelpText, CommandParser;
-import lexer;
+import lexer, syntax;
 
 @CommandDefault
 struct Options
@@ -45,15 +45,10 @@ int main(string[] args)
         {
             import std;
             auto lexer = Lexer(test.input);
-            writeln(test.input);
-            while(true)
-            {
-                auto next = lexer.next;
-                import std, tokens : TokenValue, TEOF = EOF;
-                writeln(next);
-                if(next.value == TokenValue(TEOF()))
-                    break;
-            }
+
+            // DEBUG
+            auto ast = syntax.parse(lexer);
+            writeln(*ast);
             writeln();
         }
     }
@@ -81,7 +76,7 @@ Result!Options getOptions(string[] args)
 
 Result!(TestCase[]) getTestCases(string text)
 {
-    import std       : splitter, filter, all, array, map, countUntil, byCodeUnit;
+    import std       : splitter, filter, all, array, map, countUntil, byCodeUnit, until;
     import std.ascii : isWhite; // dunno why, but I have to do this one separately for it to wkr.
 
     const DELIM = " (()) ";
@@ -99,6 +94,7 @@ Result!(TestCase[]) getTestCases(string text)
             })
             .filter!(splits => splits !is null)
             .map!(splits => TestCase(splits[0], splits[1]))
+            .until!(test => test.input == "@ ") // Allow myself to limit test cases until I've worked on the code to parse them
             .array;
 
     return typeof(return).success(cases);

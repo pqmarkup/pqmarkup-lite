@@ -13,6 +13,17 @@ enum StringStyle
     subset
 }
 
+enum BlockType
+{
+    none,
+    leftAlign,
+    leftAlignReciprocal,
+    rightAlign,
+    centerAlign,
+    justify,
+    quote
+}
+
 enum Q_LEFT = '‘';
 enum Q_RIGHT = '’';
 immutable STYLES = 
@@ -89,7 +100,9 @@ alias TokenValue = SumType!(
     EOF,
     Text,
     Plus,
-    Dot
+    Dot,
+    Junk,
+    Code
 );
 
 struct Token
@@ -133,7 +146,7 @@ struct CloseCParen
 
 struct Number
 {
-    ptrdiff_t value;
+    int value;
 }
 
 struct OpenSParen
@@ -166,6 +179,7 @@ struct JustifyAlign
 
 struct Block
 {
+    BlockType type;
 }
 
 struct NewLine
@@ -193,4 +207,15 @@ struct Plus
 
 struct Dot
 {
+}
+
+struct Junk
+{
+    string text;
+    string message;
+}
+
+struct Code
+{
+    string text;
 }

@@ -10,6 +10,9 @@ struct Lexer
     private size_t _cursor;
     private size_t _atFirst;
     private size_t _afterFirst;
+    private bool   _readNextTextAsIs; // Special case: URLS are very annoying to concat together if we still delimit by things like "-" and stuff.
+                                      //               So if we encounter a '[' that's not for a comment, then Text takes precedence over operators.
+                                      //               As a double special case: The open Quote operator still have higher precedence.
 
     this(string text)
     {
@@ -24,6 +27,8 @@ struct Lexer
         this._atFirst = this._cursor;
         this._afterFirst = this._cursor;
         const first = peekUtf(this._afterFirst);
+        const nextTextAsTrue = this._readNextTextAsIs;
+        this._readNextTextAsIs = false;
 
         if(isStyleChar(first))
         {
@@ -37,7 +42,7 @@ struct Lexer
             }
         }
 
-        size_t afterComment;
+        size_t afterComment = this._cursor;
         size_t commentNest;
         if(first == '[' && this.peekManyAscii!3(afterComment) == "[[[")
         {
@@ -46,12 +51,11 @@ struct Lexer
 
             while(commentNest > 0)
             {
-                if(!this.readUntilAscii!(c => c != '[' && c != ']')(this._cursor))
+                if(!this.readUntilAscii!(c => c == '[' || c == ']')(this._cursor))
                     return Token(EOF());
 
                 size_t afterPeek = this._cursor;
-                const peeked = this.peekManyAscii!3(afterPeek); // I peaked at 3 as well, don't worry little D code.
-                                                                // ... 'little D' as well.
+                const peeked = this.peekManyAscii!3(afterPeek);
                 if(peeked == "[[[")
                 {
                     commentNest++;
@@ -65,6 +69,19 @@ struct Lexer
                 else
                     this.peekUtf(this._cursor);
             }
+
+            return this.next();
+        }
+
+        if(nextTextAsTrue)
+        {
+            if(first == Q_LEFT)
+            {
+                this.commit(this._afterFirst);
+                return Token(OpenQuote(), this._atFirst, this._afterFirst);
+            }
+            else
+                return this.nextText();
         }
 
         switch(first)
@@ -77,8 +94,17 @@ struct Lexer
             {
                 case op.ch:
                     this.commit(this._afterFirst);
+                    static if(op.ch == '[')
+                        this._readNextTextAsIs = true;
                     return Token(op.value, this._atFirst, this._afterFirst);
             }
+
+            case '>':
+            case '<':
+                return this.nextBlock(first);
+
+            case '`':
+                return this.nextCode();
 
             default: 
                 this.commit(this._afterFirst);
@@ -100,8 +126,7 @@ struct Lexer
 
     char peekAscii(ref size_t nextCursor)
     {
-        nextCursor++;
-        return this._text[nextCursor];
+        return this._text[nextCursor++];
     }
 
     dchar peekUtf(ref size_t nextCursor)
@@ -129,13 +154,13 @@ struct Lexer
         Text text;
 
         tok.start = this._atFirst;
-        this.readUntilUtf!(c => !c.isAlphaNum && c != ' ' && c != '\t' && !isAuxTextChar(c) )(this._cursor);
+        this.readUntilUtf!(c => (!c.isAlphaNum && c != ' ' && c != '\t' && !isAuxTextChar(c)) || isTextStopChar(c))(this._cursor);
         tok.end = this._cursor;
         text.text = this._text[tok.start..tok.end];
         tok.value = text;
 
         if(text.text.isNumeric)
-            tok.value = Number(text.text.to!ptrdiff_t);
+            tok.value = Number(text.text.to!int);
 
         return tok;
     }
@@ -188,13 +213,74 @@ struct Lexer
                 ), this._atFirst, this._afterFirst);
         }
     }
+
+    Token nextBlock(dchar first)
+    {
+        this.commit(this._afterFirst);
+        size_t afterSecond = this._afterFirst;
+        const second = this.peekAscii(afterSecond);
+        
+        switch(first)
+        {
+            case '>':
+                switch(second)
+                {
+                    case '>':
+                        this.commit(afterSecond);
+                        return Token(Block(BlockType.rightAlign), this._atFirst, afterSecond);
+                    case '<':
+                        this.commit(afterSecond);
+                        return Token(Block(BlockType.centerAlign), this._atFirst, afterSecond);
+                    default:
+                        return Token(Block(BlockType.quote), this._atFirst, afterSecond);
+                }
+            
+            case '<':
+                switch(second)
+                {
+                    case '<':
+                        this.commit(afterSecond);
+                        return Token(Block(BlockType.leftAlign), this._atFirst, afterSecond);
+                    case '>':
+                        this.commit(afterSecond);
+                        return Token(Block(BlockType.justify), this._atFirst, afterSecond);
+                    default:
+                        return Token(Block(BlockType.leftAlignReciprocal), this._atFirst, afterSecond);
+                }
+            default: assert(false);
+        }
+    }
+
+    Token nextCode()
+    {
+        size_t afterFence = this._atFirst;
+        if(this.peekManyAscii!3(afterFence) != "```")
+            return Token(Text("`"), this._atFirst, this._afterFirst);
+
+        this.commit(afterFence);
+        const atCode = afterFence;
+        while(true)
+        {
+            if(!this.readUntilAscii!(ch => ch == '`')(this._cursor))
+                return Token(EOF());
+
+            afterFence = this._cursor;
+            if(this.peekManyAscii!3(afterFence) == "```")
+            {
+                this.commit(afterFence);
+                return Token(Code(this._text[atCode..afterFence-3]), this._atFirst, afterFence);
+            }
+            else
+                this.commit(this._cursor + 1);
+        }
+    }
 }
 
 private:
 
 bool isTextStopChar(dchar ch)
 {
-    return false;
+    return ch == '0';
 }
 
 bool isAuxTextChar(dchar ch)
@@ -203,7 +289,8 @@ bool isAuxTextChar(dchar ch)
         '!', '"', '£', '$', '%', '^',
         '&', '*', '=', '¬', '`', '\'',
         '@', '#', '~', ':', ';', ',',
-        '.', '?', '|', '<', '>', 
+        '.', '?', '|', '<', '>',  '/',
+        '-'
     ];
     return chs.canFind(ch);
 }
