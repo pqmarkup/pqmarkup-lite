@@ -468,7 +468,7 @@ class Parser {
                   link = [Unicode.Scalar](link[..<space])
                 }
                 if link.count > 57 {
-                  let slash = link.prefix(47).lastIndex(of: "/") ?? link.startIndex
+                  let slash = (link.prefix(47).lastIndex(of: "/") ?? link.startIndex) + 1
                   link = "\(link[..<slash])..."
                 }
                 try writeLink(
@@ -932,8 +932,7 @@ extension String {
       </head>
       <body>
       <div id="main" style="margin: 0 auto">
-      \(rendered)
-      </div>
+      \(rendered)</div>
       </body>
       </html>
       """
