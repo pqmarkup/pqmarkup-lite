@@ -1,0 +1,3 @@
+name "pqmarkup-lite"
+authors "Bradley Chatha"
+dependency "jcli" version="~>0.12.1"
