@@ -1,0 +1,56 @@
+> Quote
+>‘Quote2’
+ (()) <blockquote>Quote</blockquote>
+<blockquote>Quote2</blockquote>
+|
+
+|>[http://address]:‘Quoted text.’ (()) <blockquote><a href="http://address"><i>http://address</i></a>:<br />
+Quoted text.</blockquote>|
+
+|>[http://another-address][-1]:‘Quoted text.’
+>[-1]:‘Another quoted text.’ (()) <blockquote><a href="http://another-address"><i>http://another-address</i></a>:<br />
+Quoted text.</blockquote>
+<blockquote>Another quoted text.</blockquote>|
+
+|>‘Author's name’[http://address]:‘Quoted text.’ (()) <blockquote><i><a href="http://address">Author's name</a></i>:<br />
+Quoted text.</blockquote>|
+
+|>‘Author's name’:‘Quoted text.’ (()) <blockquote><i>Author's name</i>:<br />
+Quoted text.</blockquote>|
+
+|‘Quoted text.’:‘Author's name’< (()) <blockquote>Quoted text.<br />
+<div align='right'><i>Author's name</i></div></blockquote>|
+
+|>‘Как люди думают. Дмитрий Чернышев. 2015. 304с.’:‘[[[стр.89:]]]...’ (()) <blockquote><i>Как люди думают. Дмитрий Чернышев. 2015. 304с.</i>:<br />
+...</blockquote>|
+
+|>‘>‘Автор против nullable-типов?’
+Да. Адрес, указывающий на незаконный участок памяти, сам незаконен.’ (()) <blockquote><blockquote>Автор против nullable-типов?</blockquote>
+Да. Адрес, указывающий на незаконный участок памяти, сам незаконен.</blockquote>|
+
+|>‘> Автор против nullable-типов?
+Да. Адрес, указывающий на незаконный участок памяти, сам незаконен.’ (()) <blockquote><blockquote>Автор против nullable-типов?</blockquote>
+Да. Адрес, указывающий на незаконный участок памяти, сам незаконен.</blockquote>|
+
+|‘понимание [[[процесса]]] разбора [[[разметки]]] человеком’[‘говоря проще: приходится [[[гораздо]]] меньше думать о том, будет это работать или не будет, а просто пишешь в соответствии с чёткими/простыми/логичными правилами, и всё’] (()) <abbr title="говоря проще: приходится  меньше думать о том, будет это работать или не будет, а просто пишешь в соответствии с чёткими/простыми/логичными правилами, и всё">понимание  разбора  человеком</abbr>|
+
+|. unordered
+. list (()) • unordered<br />
+• list|
+
+
+|A
+```
+let s2 = str
+        .lowercaseString
+        .replace("hello", withString: "goodbye")
+```
+B
+C (()) A<br />
+<pre>
+let s2 = str
+        .lowercaseString
+        .replace("hello", withString: "goodbye")
+</pre>
+B<br />
+C
